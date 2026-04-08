@@ -27,16 +27,17 @@ jobs:
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/wordpress-pk-e:latest
             ${{ secrets.DOCKERHUB_USERNAME }}/wordpress-pk-e:v${{ github.run_number }}
+
       - name: Discord Success Notification
         if: success()
         uses: appleboy/discord-action@master
         with:
-          webhook_id: ${{ secrets.DISCORD_WEBHOOK }}
-          message: "🚀 **Build Success!** \nProject: ${{ github.repository }} \nVersion: v${{ github.run_number }} \nCommit: ${{ github.event.head_commit.message }}"
+          webhook_url: ${{ secrets.DISCORD_WEBHOOK }}
+          message: "🚀 **Build Success!** \nProject: ${{ github.repository }} \nVersion: v${{ github.run_number }}"
 
       - name: Discord Failure Notification
         if: failure()
         uses: appleboy/discord-action@master
         with:
-          webhook_id: ${{ secrets.DISCORD_WEBHOOK }}
-          message: "❌ **Build Failed!** \nSomething went wrong in ${{ github.repository }}. \nCheck logs: ${{ github.server_url }}/${{ github.repository }}/actions."
+          webhook_url: ${{ secrets.DISCORD_WEBHOOK }}
+          message: "❌ **Build Failed!** \nCheck logs: ${{ github.server_url }}/${{ github.repository }}/actions"
