@@ -39,4 +39,4 @@ jobs:
         uses: appleboy/discord-action@master
         with:
           webhook_id: ${{ secrets.DISCORD_WEBHOOK }}
-          message: "❌ **Build Failed!** \nSomething went wrong in ${{ github.repository }}. \nCheck logs: ${{ github.server_url }}/${{ github.repository }}/actions"
+          message: "❌ **Build Failed!** \nSomething went wrong in ${{ github.repository }}. \nCheck logs: ${{ github.server_url }}/${{ github.repository }}/actions."
