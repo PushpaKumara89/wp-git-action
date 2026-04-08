@@ -1,0 +1,7 @@
+.idea
+k8s
+docker-compose.yaml
+Dockerfile
+.dockerignore
+db/backup.sql
+readme.md

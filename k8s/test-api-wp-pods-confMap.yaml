@@ -1,0 +1,28 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: wp-custom-api-config
+data:
+  custom-api.php: |
+    <?php
+    /**
+     * Plugin Name: Custom API Info
+     */
+    add_action( 'rest_api_init', function () {
+        register_rest_route( 'api/v1', '/info', array(
+            'methods'  => 'GET',
+            'callback' => 'get_custom_wp_data',
+            'permission_callback' => '__return_true',
+        ) );
+    });
+
+    function get_custom_wp_data() {
+        $data = array(
+            'status'      => 'success',
+            'php_version' => phpversion(),
+            'time'        => current_time( 'mysql' ),
+            'hostname'    => gethostname(),
+        );
+        error_log("Host Data: " . json_encode($data));
+        return rest_ensure_response( $data );
+    }

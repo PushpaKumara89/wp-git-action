@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mysql-pass
+type: Opaque
+data:
+  root-password: "MTIzNHJvb3Q="
+  db-password: "MTIzNHBr"
+  # echo -n "1234root" | base64

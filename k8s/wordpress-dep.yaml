@@ -1,0 +1,76 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: word-press-deploy
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: word-press-deploy
+  template:
+    metadata:
+      labels:
+        app: word-press-deploy
+    spec:
+      containers:
+      - name: word-press
+        image: wordpress-pk-e:1.0.0
+        imagePullPolicy: Never
+        resources:
+          limits:
+            memory: "256Mi" 
+            cpu: "500m"
+        envFrom:
+          - configMapRef:
+              name: wp-extra-config
+        env:
+          - name: WORDPRESS_DB_HOST
+            value: mariadb-service
+          - name: WORDPRESS_DB_USER
+            value: usr_pk
+          - name: WORDPRESS_DB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                key: db-password
+                name: mysql-pass 
+          - name: WORDPRESS_DB_NAME
+            value: wordpress
+          - name: WORDPRESS_DEBUG
+            value: 'true'
+          - name: WORDPRESS_DEBUG_LOG
+            value: 'true'
+        ports:
+        - containerPort: 9000
+        volumeMounts:
+          - mountPath: /var/www/html
+            name: wp-persistent-storage
+          - mountPath: /usr/local/etc/php/conf.d/user-config.ini
+            name: php-ini-file-volume
+            subPath: php.ini
+          - name: custom-api-volume
+            mountPath: /var/www/html/wp-content/mu-plugins/custom-api.php
+            subPath: custom-api.php
+      volumes:
+        - name: wp-persistent-storage
+          persistentVolumeClaim:
+            claimName: wp-pvc
+        - name: php-ini-file-volume
+          configMap:
+            name: php-ini-file
+        - name: custom-api-volume
+          configMap:
+            name: wp-custom-api-config
+            defaultMode: 0644
+            
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: wp-service
+spec:
+  type: ClusterIP
+  selector:
+    app: word-press-deploy
+  ports:
+  - port: 9000
+    targetPort: 9000

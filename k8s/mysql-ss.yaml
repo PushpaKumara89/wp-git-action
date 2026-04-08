@@ -1,0 +1,121 @@
+# apiVersion: apps/v1
+# kind: Deployment
+# metadata:
+#   name: wordpress-db
+# spec:
+#   replicas: 1
+#   selector:
+#     matchLabels:
+#       app: wordpress-db
+#   template:
+#     metadata:
+#       labels:
+#         app: wordpress-db
+#     spec:
+#       containers:
+#       - name: mysql
+#         image: mysql:8.0
+#         resources:
+#           limits:
+#             memory: "512Mi"
+#             cpu: "500m"
+#         env:
+#           - name: MYSQL_ROOT_PASSWORD
+#             valueFrom:
+#               secretKeyRef:
+#                 key: root-password
+#                 name: mysql-pass
+#           - name: MYSQL_DATABASE
+#             value: wordpress
+#           - name: MYSQL_USER
+#             value: usr_pk
+#           - name: MYSQL_PASSWORD
+#             valueFrom:
+#               secretKeyRef:
+#                 key: db-password
+#                 name: mysql-pass
+#         ports:
+#         - containerPort: 3306
+#         volumeMounts:
+#           - mountPath: /var/lib/mysql
+#             name: mysql-persistent-storage
+#           - name: backup-volume
+#             mountPath: /docker-entrypoint-initdb.d
+      
+#       volumes:
+#         - name: mysql-persistent-storage
+#           persistentVolumeClaim:
+#             claimName: db-pvc
+#         - name: backup-volume
+#           persistentVolumeClaim:
+#             claimName: sql-backup-pvc
+
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mariadb-ss
+spec:
+  selector:
+    matchLabels:
+      app: mariadb
+  serviceName: mariadb-service
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: mariadb
+    spec:
+      securityContext:      # Container එකට එළියෙන් මේක දාන්න
+        runAsUser: 999
+        fsGroup: 999
+      containers:
+      - name: mariadb
+        image: mariadb:10.11
+        # command:
+        # - "mysqld"
+        # - "--innodb-buffer-pool-size=512M"
+        # - "--innodb-flush-log-at-trx-commit=2"
+        # - "--skip-name-resolve"
+        env:
+          - name: MARIADB_ROOT_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                key: root-password
+                name: mysql-pass
+          - name: MARIADB_DATABASE
+            value: wordpress
+          - name: MARIADB_USER
+            value: usr_pk
+          - name: MARIADB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                key: db-password
+                name: mysql-pass
+          - name: MARIADB_EXTRA_FLAGS
+            value: "--innodb-buffer-pool-size=512M --innodb-flush-log-at-trx-commit=2 --skip-name-resolve"
+        ports:
+        - containerPort: 3306
+        volumeMounts:
+        - name: maria-data
+          mountPath: /var/lib/mysql
+  volumeClaimTemplates:
+  - metadata:
+      name: maria-data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: standard
+      resources:
+        requests:
+          storage: 10Gi
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mariadb-service
+spec:
+  selector:
+    app: mariadb
+  ports:
+  - port: 3306
+  clusterIP: None

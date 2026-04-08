@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-proxy
+spec:
+  selector:
+    matchLabels:
+      app: nginx-proxy
+  template:
+    metadata:
+      labels:
+        app: nginx-proxy
+    spec:
+      containers:
+      - name: nginx-proxy
+        image: nginx:alpine
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+        ports:
+        - containerPort: 80
+        volumeMounts:
+          - mountPath: /etc/nginx/conf.d/default.conf
+            name: config-volume
+            subPath: default.conf
+          - mountPath: /var/www/html
+            name: wp-persistent-storage
+      volumes:
+        - name: config-volume
+          configMap: 
+            name: nginx-config
+        - name: wp-persistent-storage
+          persistentVolumeClaim:
+            claimName: wp-pvc
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-loadbalancer
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 3030
+    targetPort: 80
+  selector:
+    app: nginx-proxy
