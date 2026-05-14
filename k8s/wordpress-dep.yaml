@@ -14,8 +14,7 @@ spec:
     spec:
       containers:
       - name: word-press
-        image: wordpress-pk-e:1.0.0
-        imagePullPolicy: Never
+        image: pushpakumara/wordpress-pk-e:latest
         resources:
           limits:
             memory: "256Mi" 

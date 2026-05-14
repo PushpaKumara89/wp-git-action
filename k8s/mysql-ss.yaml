@@ -65,7 +65,18 @@ spec:
       labels:
         app: mariadb
     spec:
-      securityContext:      # Container එකට එළියෙන් මේක දාන්න
+      initContainers:
+      - name: fix-permissions
+        image: busybox
+        command: ["sh", "-c", "chown -R 999:999 /var/lib/mysql"]
+        securityContext:
+          runAsUser: 0
+          privileged: true
+        volumeMounts:
+        - name: maria-data
+          mountPath: /var/lib/mysql
+          
+      securityContext:      
         runAsUser: 999
         fsGroup: 999
       containers:
@@ -106,7 +117,7 @@ spec:
       storageClassName: standard
       resources:
         requests:
-          storage: 10Gi
+          storage: 2Gi
 
 ---
 apiVersion: v1
